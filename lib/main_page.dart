@@ -10,9 +10,19 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+class Answer {
+  const Answer({
+    required this.position,
+    required this.judge,
+  });
+  final int position;
+  final String judge;
+}
+
 class _MyHomePageState extends State<MyHomePage> {
   String wordId = "";
   String word = "";
+  List<Answer> answer = [];
 
   void answerMutation() async {
     final Link _httpLink = HttpLink(
@@ -53,7 +63,39 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final position = result.data!['answerWord']['chars'] as List<dynamic>;
-    print(position[0]);
+    for (var element in position) {
+      setState(() {
+        answer.add(
+            Answer(position: element['position'], judge: element['judge']));
+      });
+    }
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("ぷぷぷ"),
+          content: SizedBox(
+            height: 100,
+            width: 100,
+            child: ListView.builder(
+              itemCount: answer.length,
+              itemBuilder: (context, i) {
+                return Text(answer[i].judge);
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text("done"),
+            )
+          ],
+        );
+      },
+    );
   }
 
   final challengeCount = 5;
@@ -135,6 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       answerMutation();
                       setState(() {
                         word = "";
+                        answer = [];
                       });
                       setState(() {
                         _focus[index] = false;
@@ -142,22 +185,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           _focus[index + 1] = true;
                         }
                       });
-                      showDialog(
-                        context: context,
-                        builder: (dialogContext) {
-                          return AlertDialog(
-                            title: const Text("ぷぷぷ"),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(dialogContext);
-                                },
-                                child: const Text("done"),
-                              )
-                            ],
-                          );
-                        },
-                      );
                     },
               icon: const Icon(
                 Icons.star_rate,
