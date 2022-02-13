@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wordle_modoki/feat/validator.dart';
 import 'package:wordle_modoki/theme/theme.dart';
 import 'package:graphql/client.dart';
 
@@ -20,11 +19,15 @@ class Answer {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String wordId = "";
+  final challengeCount = 5;
+  // TODO: [] 5個かいてるのきもい
+  List<List<String>> charList = [[], [], [], [], []];
+  String wordId = "hoge";
   String word = "";
   List<Answer> answer = [];
+  int count = 0;
 
-  void answerMutation() async {
+  GraphQLClient initGeraphql() {
     final Link _httpLink = HttpLink(
       'http://ff68-106-184-135-238.ngrok.io/graphql',
     );
@@ -33,6 +36,15 @@ class _MyHomePageState extends State<MyHomePage> {
       cache: GraphQLCache(),
       link: _httpLink,
     );
+
+    return client;
+  }
+
+  void answerMutation() async {
+    for (var element in charList[count]) {
+      word += element;
+    }
+    debugPrint(word);
 
     const String answerMutation = r'''
       mutation AnswerWord($wordId: String!, $word: String!) {
@@ -53,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
 
-    final QueryResult result = await client.mutate(options);
+    final QueryResult result = await initGeraphql().mutate(options);
 
     debugPrint(result.data.toString());
 
@@ -69,12 +81,17 @@ class _MyHomePageState extends State<MyHomePage> {
             Answer(position: element['position'], judge: element['judge']));
       });
     }
+    setState(() {
+      word = "";
+      (count < 4) ? count++ : null;
+      answer = [];
+    });
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text("ぷぷぷ"),
+          title: const Text("Result"),
           content: SizedBox(
             height: 100,
             width: 100,
@@ -98,24 +115,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  final challengeCount = 5;
-  final wordCharLength = 7;
-  final _focus = [true, false, false, false, false];
-  final _textController = [
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-  ];
-  final _formKey = [
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,74 +122,198 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Text("Guess the word!"),
         elevation: 0,
       ),
-      body: ListView.builder(
-        itemCount: challengeCount,
-        itemBuilder: (context, i) {
-          return _field(i);
-        },
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 48),
+                child: ListView.separated(
+                  itemCount: challengeCount,
+                  itemBuilder: (context, count) {
+                    return _form(count);
+                  },
+                  separatorBuilder: (context, i) {
+                    return const SizedBox(height: 12);
+                  },
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _keyboard(count),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _field(int index) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Form(
-        key: _formKey[index],
-        child: Row(
+  Widget _keyboard(int count) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: TextFormField(
-                autofocus: true,
-                minLines: 1,
-                maxLines: 1,
-                controller: _textController[index],
-                decoration: InputDecoration(
-                  filled: true,
-                  // TOOD: 色作る
-                  fillColor: _focus[index] ? Colors.white : Colors.grey,
-                  border: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      width: 5,
-                      color: WordleModokiColor.hintColor,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                keyboardType: TextInputType.url,
-                enabled: _focus[index],
-                onChanged: (value) {
-                  setState(() {
-                    word = value;
-                  });
-                },
-                validator: (value) => validateWord(value, wordCharLength),
-              ),
-            ),
-            IconButton(
-              onPressed: !_focus[index] ||
-                      _formKey[index].currentState == null ||
-                      !_formKey[index].currentState!.validate()
-                  ? null
-                  : () {
+            _alphabet("Q", count),
+            _alphabet("W", count),
+            _alphabet("E", count),
+            _alphabet("R", count),
+            _alphabet("T", count),
+            _alphabet("Y", count),
+            _alphabet("U", count),
+            _alphabet("I", count),
+            _alphabet("O", count),
+            _alphabet("P", count),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _alphabet("A", count),
+            _alphabet("S", count),
+            _alphabet("D", count),
+            _alphabet("F", count),
+            _alphabet("G", count),
+            _alphabet("H", count),
+            _alphabet("J", count),
+            _alphabet("K", count),
+            _alphabet("L", count),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _button(
+              "Enter",
+              (charList[count].length == 7)
+                  ? () {
                       answerMutation();
-                      setState(() {
-                        word = "";
-                        answer = [];
-                      });
-                      setState(() {
-                        _focus[index] = false;
-                        if (index < challengeCount - 1) {
-                          _focus[index + 1] = true;
-                        }
-                      });
-                    },
-              icon: const Icon(
-                Icons.star_rate,
-              ),
+                    }
+                  : null,
+            ),
+            _alphabet("Z", count),
+            _alphabet("X", count),
+            _alphabet("C", count),
+            _alphabet("V", count),
+            _alphabet("B", count),
+            _alphabet("N", count),
+            _alphabet("M", count),
+            _button(
+              "Delete",
+              () {
+                setState(() {
+                  charList[count].removeAt(charList[count].length - 1);
+                });
+              },
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _button(String text, VoidCallback? onTap) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width / 7,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: WMColor.primaryLightColor,
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: WMColor.primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onPressed: onTap,
+        ),
+      ),
+    );
+  }
+
+  Widget _alphabet(String char, int index) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width / 12,
+        child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: WMColor.primaryLightColor,
+            ),
+            child: Text(
+              char,
+              style: const TextStyle(
+                color: WMColor.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onPressed: (charList[count].length == 7)
+                ? null
+                : () {
+                    setState(() {
+                      charList[index].add(char);
+                    });
+                  }),
+      ),
+    );
+  }
+
+  Widget _form(int index) {
+    if (charList[index].isNotEmpty) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _tile(charList[index].isEmpty ? "" : charList[index][0]),
+          _tile(charList[index].length >= 2 ? charList[index][1] : ""),
+          _tile(charList[index].length >= 3 ? charList[index][2] : ""),
+          _tile(charList[index].length >= 4 ? charList[index][3] : ""),
+          _tile(charList[index].length >= 5 ? charList[index][4] : ""),
+          _tile(charList[index].length >= 6 ? charList[index][5] : ""),
+          _tile(charList[index].length >= 7 ? charList[index][6] : ""),
+        ],
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _tile(""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
+      ],
+    );
+  }
+
+  Widget _tile(String char) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width / 8,
+        height: MediaQuery.of(context).size.width / 8,
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border.all(color: WMColor.secondaryColor),
+            color: WMColor.secondaryLightColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            char,
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width / 8,
+              color: WMColor.secondaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ),
     );
