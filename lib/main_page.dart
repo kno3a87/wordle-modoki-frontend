@@ -27,12 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Answer> answer = [];
   int count = 0;
 
-  void answerMutation() async {
-    for (var element in charList[count]) {
-      word += element;
-    }
-    debugPrint(word);
-
+  GraphQLClient initGeraphql() {
     final Link _httpLink = HttpLink(
       'http://ff68-106-184-135-238.ngrok.io/graphql',
     );
@@ -41,6 +36,15 @@ class _MyHomePageState extends State<MyHomePage> {
       cache: GraphQLCache(),
       link: _httpLink,
     );
+
+    return client;
+  }
+
+  void answerMutation() async {
+    for (var element in charList[count]) {
+      word += element;
+    }
+    debugPrint(word);
 
     const String answerMutation = r'''
       mutation AnswerWord($wordId: String!, $word: String!) {
@@ -61,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
 
-    final QueryResult result = await client.mutate(options);
+    final QueryResult result = await initGeraphql().mutate(options);
 
     debugPrint(result.data.toString());
 
@@ -87,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text("ぷぷぷ"),
+          title: const Text("Result"),
           content: SizedBox(
             height: 100,
             width: 100,
@@ -184,7 +188,11 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             _button(
               "Enter",
-              (charList[count].length == 7) ? () => answerMutation() : null,
+              (charList[count].length == 7)
+                  ? () {
+                      answerMutation();
+                    }
+                  : null,
             ),
             _alphabet("Z", count),
             _alphabet("X", count),
