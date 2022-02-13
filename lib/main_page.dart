@@ -29,7 +29,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   GraphQLClient initGeraphql() {
     final Link _httpLink = HttpLink(
-      'http://ff68-106-184-135-238.ngrok.io/graphql',
+      'http://944c-106-186-235-184.ngrok.io/graphql',
     );
 
     final GraphQLClient client = GraphQLClient(
@@ -38,6 +38,27 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     return client;
+  }
+
+  void correctWordQuery() async {
+    const String correctWordQuery = r'''
+      query CorrectWord($wordId: String!) {
+        correctWord(wordId: $wordId) {
+          word
+          mean
+        }
+      }
+    ''';
+
+    final QueryOptions options = QueryOptions(
+      document: gql(correctWordQuery),
+      variables: <String, String>{
+        'wordId': wordId,
+      },
+    );
+
+    final QueryResult result = await initGeraphql().query(options);
+    print(result);
   }
 
   void answerMutation() async {
@@ -71,6 +92,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (result.hasException) {
       debugPrint(result.exception.toString());
+      showDialog(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text("Result"),
+            content: const Text("そんな英単語はありませ〜〜〜〜ん"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text("done"),
+              )
+            ],
+          );
+        },
+      );
       return;
     }
 
@@ -190,6 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
               "Enter",
               (charList[count].length == 7)
                   ? () {
+                      correctWordQuery();
                       answerMutation();
                     }
                   : null,
