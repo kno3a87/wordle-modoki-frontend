@@ -92,6 +92,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (result.hasException) {
       debugPrint(result.exception.toString());
+      showDialog(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text("Result"),
+            content: const Text("そんな英単語はありませ〜〜〜〜ん"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text("done"),
+              )
+            ],
+          );
+        },
+      );
       return;
     }
 
