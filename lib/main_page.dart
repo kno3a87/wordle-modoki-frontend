@@ -123,8 +123,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 24),
-              child: KeyBoard(
-                count: count,
+              child: keyboard(
+                count,
+                context,
                 onTapEnter: (charList[count].length == 7)
                     ? () {
                         // correctWordQuery();
