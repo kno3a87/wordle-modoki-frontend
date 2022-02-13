@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wordle_modoki/feat/graphql_client.dart';
 import 'package:wordle_modoki/theme/theme.dart';
-import 'package:graphql/client.dart';
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+import 'package:wordle_modoki/widget/keyboard.dart';
 
 class Answer {
   const Answer({
@@ -17,6 +10,13 @@ class Answer {
   });
   final int position;
   final String judge;
+}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -123,125 +123,30 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 24),
-              child: _keyboard(count),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _keyboard(int count) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _alphabet("Q", count),
-            _alphabet("W", count),
-            _alphabet("E", count),
-            _alphabet("R", count),
-            _alphabet("T", count),
-            _alphabet("Y", count),
-            _alphabet("U", count),
-            _alphabet("I", count),
-            _alphabet("O", count),
-            _alphabet("P", count),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _alphabet("A", count),
-            _alphabet("S", count),
-            _alphabet("D", count),
-            _alphabet("F", count),
-            _alphabet("G", count),
-            _alphabet("H", count),
-            _alphabet("J", count),
-            _alphabet("K", count),
-            _alphabet("L", count),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _button(
-              "Enter",
-              (charList[count].length == 7)
-                  ? () {
-                      // correctWordQuery();
-                      postAnswer();
-                    }
-                  : null,
-            ),
-            _alphabet("Z", count),
-            _alphabet("X", count),
-            _alphabet("C", count),
-            _alphabet("V", count),
-            _alphabet("B", count),
-            _alphabet("N", count),
-            _alphabet("M", count),
-            _button(
-              "Delete",
-              () {
-                setState(() {
-                  charList[count].removeAt(charList[count].length - 1);
-                });
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _button(String text, VoidCallback? onTap) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width / 7,
-        child: TextButton(
-          style: TextButton.styleFrom(
-            backgroundColor: WMColor.primaryLightColor,
-          ),
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: WMColor.primaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          onPressed: onTap,
-        ),
-      ),
-    );
-  }
-
-  Widget _alphabet(String char, int index) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width / 12,
-        child: TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: WMColor.primaryLightColor,
-            ),
-            child: Text(
-              char,
-              style: const TextStyle(
-                color: WMColor.primaryColor,
-                fontWeight: FontWeight.bold,
+              child: KeyBoard(
+                count: count,
+                onTapEnter: (charList[count].length == 7)
+                    ? () {
+                        // correctWordQuery();
+                        postAnswer();
+                      }
+                    : null,
+                onTapDelete: () {
+                  setState(() {
+                    charList[count].removeAt(charList[count].length - 1);
+                  });
+                },
+                onTapAlphabet: (charList[count].length == 7)
+                    ? null
+                    : (String char) {
+                        setState(() {
+                          charList[count].add(char);
+                        });
+                      },
               ),
             ),
-            onPressed: (charList[count].length == 7)
-                ? null
-                : () {
-                    setState(() {
-                      charList[index].add(char);
-                    });
-                  }),
+          ],
+        ),
       ),
     );
   }
