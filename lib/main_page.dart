@@ -20,11 +20,15 @@ class Answer {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String wordId = "";
+  String wordId = "hoge";
   String word = "";
   List<Answer> answer = [];
 
   void answerMutation() async {
+    for (var element in charList) {
+      word += element;
+    }
+
     final Link _httpLink = HttpLink(
       'http://ff68-106-184-135-238.ngrok.io/graphql',
     );
@@ -100,21 +104,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final challengeCount = 5;
   final wordCharLength = 7;
-  final _focus = [true, false, false, false, false];
-  final _textController = [
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-  ];
-  final _formKey = [
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -123,74 +112,192 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Text("Guess the word!"),
         elevation: 0,
       ),
-      body: ListView.builder(
-        itemCount: challengeCount,
-        itemBuilder: (context, i) {
-          return _field(i);
-        },
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 48),
+              child: _form(0),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _keyboard(),
+            ),
+          ],
+        ),
+      ),
+      // ListView.builder(
+      //   itemCount: challengeCount,
+      //   itemBuilder: (context, i) {
+      //     return _field(i);
+      //   },
+      // ),
+    );
+  }
+
+  List<String> charList = [];
+
+  Widget _keyboard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _alphabet("Q"),
+            _alphabet("W"),
+            _alphabet("E"),
+            _alphabet("R"),
+            _alphabet("T"),
+            _alphabet("Y"),
+            _alphabet("U"),
+            _alphabet("I"),
+            _alphabet("O"),
+            _alphabet("P"),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _alphabet("A"),
+            _alphabet("S"),
+            _alphabet("D"),
+            _alphabet("F"),
+            _alphabet("G"),
+            _alphabet("H"),
+            _alphabet("J"),
+            _alphabet("K"),
+            _alphabet("L"),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _button(
+              "Enter",
+              (charList.length == 7)
+                  ? () {
+                      answerMutation();
+                      // setState(() {
+                      //   word = "";
+                      //   answer = [];
+                      // });
+                      // setState(() {
+                      //   _focus[index] = false;
+                      //   if (index < challengeCount - 1) {
+                      //     _focus[index + 1] = true;
+                      //   }
+                      // });
+                    }
+                  : null,
+            ),
+            _alphabet("Z"),
+            _alphabet("X"),
+            _alphabet("C"),
+            _alphabet("V"),
+            _alphabet("B"),
+            _alphabet("N"),
+            _alphabet("M"),
+            _button(
+              "Delete",
+              () {
+                setState(() {
+                  charList.removeAt(charList.length - 1);
+                });
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _button(String text, VoidCallback? onTap) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width / 7,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: WMColor.primaryLightColor,
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: WMColor.primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onPressed: onTap,
+        ),
       ),
     );
   }
 
-  Widget _field(int index) {
+  Widget _alphabet(String char) {
     return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Form(
-        key: _formKey[index],
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: TextFormField(
-                autofocus: true,
-                minLines: 1,
-                maxLines: 1,
-                controller: _textController[index],
-                decoration: InputDecoration(
-                  filled: true,
-                  // TOOD: 色作る
-                  fillColor: _focus[index] ? Colors.white : Colors.grey,
-                  border: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      width: 5,
-                      color: WordleModokiColor.hintColor,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                keyboardType: TextInputType.url,
-                enabled: _focus[index],
-                onChanged: (value) {
-                  setState(() {
-                    word = value;
-                  });
-                },
-                validator: (value) => validateWord(value, wordCharLength),
-              ),
+      padding: const EdgeInsets.all(2.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width / 12,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: WMColor.primaryLightColor,
+          ),
+          child: Text(
+            char,
+            style: const TextStyle(
+              color: WMColor.primaryColor,
+              fontWeight: FontWeight.bold,
             ),
-            IconButton(
-              onPressed: !_focus[index] ||
-                      _formKey[index].currentState == null ||
-                      !_formKey[index].currentState!.validate()
-                  ? null
-                  : () {
-                      answerMutation();
-                      setState(() {
-                        word = "";
-                        answer = [];
-                      });
-                      setState(() {
-                        _focus[index] = false;
-                        if (index < challengeCount - 1) {
-                          _focus[index + 1] = true;
-                        }
-                      });
-                    },
-              icon: const Icon(
-                Icons.star_rate,
-              ),
+          ),
+          onPressed: () {
+            setState(() {
+              charList.add(char);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _form(int index) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _tile(charList.isEmpty ? "" : charList[0]),
+        _tile(charList.length >= 2 ? charList[1] : ""),
+        _tile(charList.length >= 3 ? charList[2] : ""),
+        _tile(charList.length >= 4 ? charList[3] : ""),
+        _tile(charList.length >= 5 ? charList[4] : ""),
+        _tile(charList.length >= 6 ? charList[5] : ""),
+        _tile(charList.length >= 7 ? charList[6] : ""),
+      ],
+    );
+  }
+
+  Widget _tile(String char) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width / 8,
+        height: MediaQuery.of(context).size.width / 8,
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border.all(color: WMColor.secondaryColor),
+            color: WMColor.secondaryLightColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            char,
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width / 8,
+              color: WMColor.secondaryColor,
+              fontWeight: FontWeight.bold,
             ),
-          ],
+          ),
         ),
       ),
     );
