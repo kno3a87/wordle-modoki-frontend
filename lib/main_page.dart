@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wordle_modoki/feat/validator.dart';
 import 'package:wordle_modoki/theme/theme.dart';
 import 'package:graphql/client.dart';
 
@@ -20,14 +19,19 @@ class Answer {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final challengeCount = 5;
+  // TODO: [] 5個かいてるのきもい
+  List<List<String>> charList = [[], [], [], [], []];
   String wordId = "hoge";
   String word = "";
   List<Answer> answer = [];
+  int count = 0;
 
   void answerMutation() async {
-    for (var element in charList) {
+    for (var element in charList[count]) {
       word += element;
     }
+    debugPrint(word);
 
     final Link _httpLink = HttpLink(
       'http://ff68-106-184-135-238.ngrok.io/graphql',
@@ -73,6 +77,11 @@ class _MyHomePageState extends State<MyHomePage> {
             Answer(position: element['position'], judge: element['judge']));
       });
     }
+    setState(() {
+      word = "";
+      (count < 4) ? count++ : null;
+      answer = [];
+    });
 
     showDialog(
       context: context,
@@ -102,9 +111,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  final challengeCount = 5;
-  final wordCharLength = 7;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,61 +121,62 @@ class _MyHomePageState extends State<MyHomePage> {
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 48),
-              child: _form(0),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 48),
+                child: ListView.separated(
+                  itemCount: challengeCount,
+                  itemBuilder: (context, count) {
+                    return _form(count);
+                  },
+                  separatorBuilder: (context, i) {
+                    return const SizedBox(height: 12);
+                  },
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 24),
-              child: _keyboard(),
+              child: _keyboard(count),
             ),
           ],
         ),
       ),
-      // ListView.builder(
-      //   itemCount: challengeCount,
-      //   itemBuilder: (context, i) {
-      //     return _field(i);
-      //   },
-      // ),
     );
   }
 
-  List<String> charList = [];
-
-  Widget _keyboard() {
+  Widget _keyboard(int count) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _alphabet("Q"),
-            _alphabet("W"),
-            _alphabet("E"),
-            _alphabet("R"),
-            _alphabet("T"),
-            _alphabet("Y"),
-            _alphabet("U"),
-            _alphabet("I"),
-            _alphabet("O"),
-            _alphabet("P"),
+            _alphabet("Q", count),
+            _alphabet("W", count),
+            _alphabet("E", count),
+            _alphabet("R", count),
+            _alphabet("T", count),
+            _alphabet("Y", count),
+            _alphabet("U", count),
+            _alphabet("I", count),
+            _alphabet("O", count),
+            _alphabet("P", count),
           ],
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _alphabet("A"),
-            _alphabet("S"),
-            _alphabet("D"),
-            _alphabet("F"),
-            _alphabet("G"),
-            _alphabet("H"),
-            _alphabet("J"),
-            _alphabet("K"),
-            _alphabet("L"),
+            _alphabet("A", count),
+            _alphabet("S", count),
+            _alphabet("D", count),
+            _alphabet("F", count),
+            _alphabet("G", count),
+            _alphabet("H", count),
+            _alphabet("J", count),
+            _alphabet("K", count),
+            _alphabet("L", count),
           ],
         ),
         Row(
@@ -177,34 +184,20 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             _button(
               "Enter",
-              (charList.length == 7)
-                  ? () {
-                      answerMutation();
-                      // setState(() {
-                      //   word = "";
-                      //   answer = [];
-                      // });
-                      // setState(() {
-                      //   _focus[index] = false;
-                      //   if (index < challengeCount - 1) {
-                      //     _focus[index + 1] = true;
-                      //   }
-                      // });
-                    }
-                  : null,
+              (charList[count].length == 7) ? () => answerMutation() : null,
             ),
-            _alphabet("Z"),
-            _alphabet("X"),
-            _alphabet("C"),
-            _alphabet("V"),
-            _alphabet("B"),
-            _alphabet("N"),
-            _alphabet("M"),
+            _alphabet("Z", count),
+            _alphabet("X", count),
+            _alphabet("C", count),
+            _alphabet("V", count),
+            _alphabet("B", count),
+            _alphabet("N", count),
+            _alphabet("M", count),
             _button(
               "Delete",
               () {
                 setState(() {
-                  charList.removeAt(charList.length - 1);
+                  charList[count].removeAt(charList[count].length - 1);
                 });
               },
             ),
@@ -236,43 +229,58 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _alphabet(String char) {
+  Widget _alphabet(String char, int index) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: SizedBox(
         width: MediaQuery.of(context).size.width / 12,
         child: TextButton(
-          style: TextButton.styleFrom(
-            backgroundColor: WMColor.primaryLightColor,
-          ),
-          child: Text(
-            char,
-            style: const TextStyle(
-              color: WMColor.primaryColor,
-              fontWeight: FontWeight.bold,
+            style: TextButton.styleFrom(
+              backgroundColor: WMColor.primaryLightColor,
             ),
-          ),
-          onPressed: () {
-            setState(() {
-              charList.add(char);
-            });
-          },
-        ),
+            child: Text(
+              char,
+              style: const TextStyle(
+                color: WMColor.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onPressed: (charList[count].length == 7)
+                ? null
+                : () {
+                    setState(() {
+                      charList[index].add(char);
+                    });
+                  }),
       ),
     );
   }
 
   Widget _form(int index) {
+    if (charList[index].isNotEmpty) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _tile(charList[index].isEmpty ? "" : charList[index][0]),
+          _tile(charList[index].length >= 2 ? charList[index][1] : ""),
+          _tile(charList[index].length >= 3 ? charList[index][2] : ""),
+          _tile(charList[index].length >= 4 ? charList[index][3] : ""),
+          _tile(charList[index].length >= 5 ? charList[index][4] : ""),
+          _tile(charList[index].length >= 6 ? charList[index][5] : ""),
+          _tile(charList[index].length >= 7 ? charList[index][6] : ""),
+        ],
+      );
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _tile(charList.isEmpty ? "" : charList[0]),
-        _tile(charList.length >= 2 ? charList[1] : ""),
-        _tile(charList.length >= 3 ? charList[2] : ""),
-        _tile(charList.length >= 4 ? charList[3] : ""),
-        _tile(charList.length >= 5 ? charList[4] : ""),
-        _tile(charList.length >= 6 ? charList[5] : ""),
-        _tile(charList.length >= 7 ? charList[6] : ""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
+        _tile(""),
       ],
     );
   }
