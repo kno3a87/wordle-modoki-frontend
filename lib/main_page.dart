@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wordle_modoki/feat/graphql_client.dart';
 import 'package:wordle_modoki/theme/theme.dart';
 import 'package:graphql/client.dart';
 
@@ -27,66 +28,8 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Answer> answer = [];
   int count = 0;
 
-  GraphQLClient initGeraphql() {
-    final Link _httpLink = HttpLink(
-      'http://944c-106-186-235-184.ngrok.io/graphql',
-    );
-
-    final GraphQLClient client = GraphQLClient(
-      cache: GraphQLCache(),
-      link: _httpLink,
-    );
-
-    return client;
-  }
-
-  void correctWordQuery() async {
-    const String correctWordQuery = r'''
-      query CorrectWord($wordId: String!) {
-        correctWord(wordId: $wordId) {
-          word
-          mean
-        }
-      }
-    ''';
-
-    final QueryOptions options = QueryOptions(
-      document: gql(correctWordQuery),
-      variables: <String, String>{
-        'wordId': wordId,
-      },
-    );
-
-    final QueryResult result = await initGeraphql().query(options);
-    print(result);
-  }
-
-  void answerMutation() async {
-    for (var element in charList[count]) {
-      word += element;
-    }
-    debugPrint(word);
-
-    const String answerMutation = r'''
-      mutation AnswerWord($wordId: String!, $word: String!) {
-        answerWord(wordId: $wordId, word: $word) {
-          chars {
-            judge
-            position
-          }
-        }
-      }
-    ''';
-
-    final MutationOptions options = MutationOptions(
-      document: gql(answerMutation),
-      variables: <String, String>{
-        'wordId': wordId,
-        'word': word,
-      },
-    );
-
-    final QueryResult result = await initGeraphql().mutate(options);
+  void postAnswer() async {
+    final result = await answerMutation(charList[count]);
 
     debugPrint(result.data.toString());
 
@@ -228,8 +171,8 @@ class _MyHomePageState extends State<MyHomePage> {
               "Enter",
               (charList[count].length == 7)
                   ? () {
-                      correctWordQuery();
-                      answerMutation();
+                      // correctWordQuery();
+                      postAnswer();
                     }
                   : null,
             ),
