@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wordle_modoki/feat/graphql_client.dart';
-import 'package:wordle_modoki/theme/theme.dart';
+import 'package:wordle_modoki/widget/form.dart';
 import 'package:wordle_modoki/widget/keyboard.dart';
 
 class Answer {
@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: ListView.separated(
                   itemCount: challengeCount,
                   itemBuilder: (context, count) {
-                    return _form(count);
+                    return form(count, charList, context);
                   },
                   separatorBuilder: (context, i) {
                     return const SizedBox(height: 12);
@@ -146,61 +146,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _form(int index) {
-    if (charList[index].isNotEmpty) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _tile(charList[index].isEmpty ? "" : charList[index][0]),
-          _tile(charList[index].length >= 2 ? charList[index][1] : ""),
-          _tile(charList[index].length >= 3 ? charList[index][2] : ""),
-          _tile(charList[index].length >= 4 ? charList[index][3] : ""),
-          _tile(charList[index].length >= 5 ? charList[index][4] : ""),
-          _tile(charList[index].length >= 6 ? charList[index][5] : ""),
-          _tile(charList[index].length >= 7 ? charList[index][6] : ""),
-        ],
-      );
-    }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _tile(""),
-        _tile(""),
-        _tile(""),
-        _tile(""),
-        _tile(""),
-        _tile(""),
-        _tile(""),
-      ],
-    );
-  }
-
-  Widget _tile(String char) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width / 8,
-        height: MediaQuery.of(context).size.width / 8,
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            border: Border.all(color: WMColor.secondaryColor),
-            color: WMColor.secondaryLightColor,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            char,
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.width / 8,
-              color: WMColor.secondaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ),
       ),
     );
