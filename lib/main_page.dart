@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wordle_modoki/feat/graphql_client.dart';
-import 'package:wordle_modoki/theme/theme.dart';
 import 'package:wordle_modoki/widget/form.dart';
-import 'package:wordle_modoki/widget/old_form.dart';
 import 'package:wordle_modoki/widget/keyboard.dart';
 
 class Answer {
@@ -67,79 +65,71 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   List<String> word = [];
-  List<Answer> answer = [];
+  List<Answer> answers = [];
 
-  // void postAnswer() async {
-  //   final result = await answerMutation(charList[count]);
+  void postAnswer() async {
+    final result = await answerMutation(word);
+    debugPrint(result.data.toString());
 
-  //   debugPrint(result.data.toString());
+    if (result.hasException) {
+      debugPrint(result.exception.toString());
+      showDialog(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text("Result"),
+            content: const Text("そんな英単語はありませ〜〜〜〜ん"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text("done"),
+              )
+            ],
+          );
+        },
+      );
+      return;
+    }
 
-  //   if (result.hasException) {
-  //     debugPrint(result.exception.toString());
-  //     showDialog(
-  //       context: context,
-  //       builder: (dialogContext) {
-  //         return AlertDialog(
-  //           title: const Text("Result"),
-  //           content: const Text("そんな英単語はありませ〜〜〜〜ん"),
-  //           actions: [
-  //             TextButton(
-  //               onPressed: () {
-  //                 Navigator.pop(dialogContext);
-  //               },
-  //               child: const Text("done"),
-  //             )
-  //           ],
-  //         );
-  //       },
-  //     );
-  //     return;
-  //   }
+    final position = result.data!['answerWord']['chars'] as List<dynamic>;
+    for (var element in position) {
+      setState(() {
+        answers.add(
+          Answer(
+            position: element['position'],
+            judge: element['judge'],
+          ),
+        );
+      });
+    }
 
-  //   final position = result.data!['answerWord']['chars'] as List<dynamic>;
-  //   for (var element in position) {
-  //     setState(() {
-  //       answer.add(
-  //           Answer(position: element['position'], judge: element['judge']));
-  //     });
-  //   }
-  //   setState(() {
-  //     word = "";
-  //     (count < 4) ? count++ : null;
-  //     answer = [];
-  //   });
+    for (var answer in answers) {
+      if (answer.judge == "CORRECT") {
+        tiles[answer.position + (cursor.currentTimes * charLength)].state =
+            CharState.CORRECT;
+      } else if (answer.judge == "EXISTING") {
+        tiles[answer.position + (cursor.currentTimes * charLength)].state =
+            CharState.EXISTING;
+      } else if (answer.judge == "NOTHING") {
+        tiles[answer.position + (cursor.currentTimes * charLength)].state =
+            CharState.NOTHING;
+      }
+    }
 
-  //   showDialog(
-  //     context: context,
-  //     builder: (dialogContext) {
-  //       return AlertDialog(
-  //         title: const Text("Result"),
-  //         content: SizedBox(
-  //           height: 100,
-  //           width: 100,
-  //           child: ListView.builder(
-  //             itemCount: answer.length,
-  //             itemBuilder: (context, i) {
-  //               return Text(answer[i].judge);
-  //             },
-  //           ),
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.pop(dialogContext);
-  //             },
-  //             child: const Text("done"),
-  //           )
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
+    // 初期化
+    setState(() {
+      cursor.currentPosition = 0;
+      (cursor.currentTimes < 4) ? cursor.currentTimes++ : null;
+      word = [];
+      answers = [];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    print(word);
+    debugPrint(word.toString());
 
     return Scaffold(
       appBar: AppBar(
@@ -166,15 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 context,
                 onTapEnter: (word.length == charLength)
                     ? () {
-                        print("OK");
-                        cursor.currentPosition = 0;
-                        cursor.currentTimes++;
-                        setState(() {
-                          word = [];
-                        });
-
-                        // correctWordQuery();
-                        // postAnswer();
+                        correctWordQuery();
+                        postAnswer();
                       }
                     : null,
                 onTapDelete: (word.isEmpty)
@@ -182,7 +165,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     : () {
                         setState(() {
                           word.removeAt(word.length - 1);
-                          tiles[cursor.currentPosition - 1].char = "";
+                          tiles[cursor.currentPosition +
+                                  (cursor.currentTimes * charLength) -
+                                  1]
+                              .char = "";
                           cursor.currentPosition--;
                         });
                       },

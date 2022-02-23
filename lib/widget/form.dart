@@ -18,11 +18,11 @@ Widget form(List<TileState> tilesState, int charLength) {
 Widget _tile(TileState tileState) {
   Color boxBackgroundColor = WMColor.white;
   if (tileState.state == CharState.CORRECT) {
-    boxBackgroundColor = WMColor.primaryLightColor;
-  } else if (tileState.state == CharState.EXISTING) {
     boxBackgroundColor = WMColor.primaryColor;
+  } else if (tileState.state == CharState.EXISTING) {
+    boxBackgroundColor = WMColor.secondaryColor;
   } else if (tileState.state == CharState.NOTHING) {
-    boxBackgroundColor = WMColor.secondaryLightColor;
+    boxBackgroundColor = WMColor.lightGray;
   }
 
   return Padding(
@@ -30,7 +30,7 @@ Widget _tile(TileState tileState) {
     child: Container(
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        border: Border.all(color: WMColor.secondaryColor),
+        border: Border.all(color: WMColor.gray),
         color: boxBackgroundColor,
         borderRadius: BorderRadius.circular(10),
       ),
@@ -38,7 +38,7 @@ Widget _tile(TileState tileState) {
         tileState.char,
         style: const TextStyle(
           fontSize: 60,
-          color: WMColor.secondaryColor,
+          color: WMColor.gray,
           fontWeight: FontWeight.bold,
         ),
       ),
