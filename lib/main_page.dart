@@ -51,7 +51,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final int challengeTimes = 5;
   final int charLength = 4;
-  final String wordId = "hoge";
+  final String wordId = "hoge"; // UUID入れると単語が変わる
 
   Cursor cursor = Cursor(currentTimes: 0, currentPosition: 0);
   List<TileState> tiles = List.generate(
@@ -151,9 +151,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 24.0),
-              child: keyboard(
-                cursor.currentTimes,
-                context,
+              child: KeyBoard(
+                tiles: tiles,
+                count: cursor.currentTimes,
                 onTapEnter: (word.length == charLength)
                     ? () {
                         correctWordQuery();
