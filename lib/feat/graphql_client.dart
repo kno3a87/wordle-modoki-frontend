@@ -6,7 +6,7 @@ const String wordId = "hoge";
 
 GraphQLClient initGeraphql() {
   final Link _httpLink = HttpLink(
-    'http://944c-106-186-235-184.ngrok.io/graphql',
+    'http://fab8-106-186-235-184.ngrok.io/graphql',
   );
 
   final GraphQLClient client = GraphQLClient(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wordle_modoki/feat/graphql_client.dart';
+import 'package:wordle_modoki/theme/theme.dart';
 import 'package:wordle_modoki/widget/form.dart';
+import 'package:wordle_modoki/widget/old_form.dart';
 import 'package:wordle_modoki/widget/keyboard.dart';
 
 class Answer {
@@ -12,6 +14,35 @@ class Answer {
   final String judge;
 }
 
+class TileState {
+  TileState({
+    required this.times,
+    required this.position,
+    required this.char,
+    required this.state,
+  });
+  int times;
+  int position;
+  String char;
+  CharState state;
+}
+
+class Cursor {
+  Cursor({
+    required this.currentTimes,
+    required this.currentPosition,
+  });
+  int currentTimes;
+  int currentPosition;
+}
+
+enum CharState {
+  CORRECT,
+  EXISTING,
+  NOTHING,
+  NO_ANSWER,
+}
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
@@ -20,84 +51,96 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final challengeCount = 5;
-  // TODO: [] 5個かいてるのきもい
-  List<List<String>> charList = [[], [], [], [], []];
-  String wordId = "hoge";
-  String word = "";
+  final int challengeTimes = 5;
+  final int charLength = 7;
+  final String wordId = "hoge";
+
+  Cursor cursor = Cursor(currentTimes: 0, currentPosition: 0);
+  List<TileState> tiles = List.generate(
+    35,
+    (i) => TileState(
+      times: 0,
+      position: 0,
+      char: "",
+      state: CharState.NO_ANSWER,
+    ),
+  );
+
+  List<String> word = [];
   List<Answer> answer = [];
-  int count = 0;
 
-  void postAnswer() async {
-    final result = await answerMutation(charList[count]);
+  // void postAnswer() async {
+  //   final result = await answerMutation(charList[count]);
 
-    debugPrint(result.data.toString());
+  //   debugPrint(result.data.toString());
 
-    if (result.hasException) {
-      debugPrint(result.exception.toString());
-      showDialog(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: const Text("Result"),
-            content: const Text("そんな英単語はありませ〜〜〜〜ん"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                },
-                child: const Text("done"),
-              )
-            ],
-          );
-        },
-      );
-      return;
-    }
+  //   if (result.hasException) {
+  //     debugPrint(result.exception.toString());
+  //     showDialog(
+  //       context: context,
+  //       builder: (dialogContext) {
+  //         return AlertDialog(
+  //           title: const Text("Result"),
+  //           content: const Text("そんな英単語はありませ〜〜〜〜ん"),
+  //           actions: [
+  //             TextButton(
+  //               onPressed: () {
+  //                 Navigator.pop(dialogContext);
+  //               },
+  //               child: const Text("done"),
+  //             )
+  //           ],
+  //         );
+  //       },
+  //     );
+  //     return;
+  //   }
 
-    final position = result.data!['answerWord']['chars'] as List<dynamic>;
-    for (var element in position) {
-      setState(() {
-        answer.add(
-            Answer(position: element['position'], judge: element['judge']));
-      });
-    }
-    setState(() {
-      word = "";
-      (count < 4) ? count++ : null;
-      answer = [];
-    });
+  //   final position = result.data!['answerWord']['chars'] as List<dynamic>;
+  //   for (var element in position) {
+  //     setState(() {
+  //       answer.add(
+  //           Answer(position: element['position'], judge: element['judge']));
+  //     });
+  //   }
+  //   setState(() {
+  //     word = "";
+  //     (count < 4) ? count++ : null;
+  //     answer = [];
+  //   });
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text("Result"),
-          content: SizedBox(
-            height: 100,
-            width: 100,
-            child: ListView.builder(
-              itemCount: answer.length,
-              itemBuilder: (context, i) {
-                return Text(answer[i].judge);
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
-              child: const Text("done"),
-            )
-          ],
-        );
-      },
-    );
-  }
+  //   showDialog(
+  //     context: context,
+  //     builder: (dialogContext) {
+  //       return AlertDialog(
+  //         title: const Text("Result"),
+  //         content: SizedBox(
+  //           height: 100,
+  //           width: 100,
+  //           child: ListView.builder(
+  //             itemCount: answer.length,
+  //             itemBuilder: (context, i) {
+  //               return Text(answer[i].judge);
+  //             },
+  //           ),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(dialogContext);
+  //             },
+  //             child: const Text("done"),
+  //           )
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
+    print(word);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Guess the word!"),
@@ -109,40 +152,52 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 48),
-                child: ListView.separated(
-                  itemCount: challengeCount,
-                  itemBuilder: (context, count) {
-                    return form(count, charList, context);
-                  },
-                  separatorBuilder: (context, i) {
-                    return const SizedBox(height: 12);
-                  },
+                padding: const EdgeInsets.all(16.0),
+                child: form(
+                  tiles,
+                  charLength,
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.only(bottom: 24.0),
               child: keyboard(
-                count,
+                cursor.currentTimes,
                 context,
-                onTapEnter: (charList[count].length == 7)
+                onTapEnter: (word.length == charLength)
                     ? () {
+                        print("OK");
+                        cursor.currentPosition = 0;
+                        cursor.currentTimes++;
+                        setState(() {
+                          word = [];
+                        });
+
                         // correctWordQuery();
-                        postAnswer();
+                        // postAnswer();
                       }
                     : null,
-                onTapDelete: () {
-                  setState(() {
-                    charList[count].removeAt(charList[count].length - 1);
-                  });
-                },
-                onTapAlphabet: (charList[count].length == 7)
+                onTapDelete: (word.isEmpty)
+                    ? null
+                    : () {
+                        setState(() {
+                          word.removeAt(word.length - 1);
+                          tiles[cursor.currentPosition - 1].char = "";
+                          cursor.currentPosition--;
+                        });
+                      },
+                onTapAlphabet: (word.length == charLength)
                     ? null
                     : (String char) {
-                        setState(() {
-                          charList[count].add(char);
-                        });
+                        setState(
+                          () {
+                            word.add(char);
+                            tiles[cursor.currentPosition +
+                                    (cursor.currentTimes * charLength)]
+                                .char = char;
+                            cursor.currentPosition++;
+                          },
+                        );
                       },
               ),
             ),
