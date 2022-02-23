@@ -181,13 +181,13 @@ class _KeyBoardState extends State<KeyBoard> {
     Function(String)? onTapAlphabet,
     CharState charState,
   ) {
-    Color backgroundColor = WMColor.primaryDarkColor;
+    Color backgroundColor = WMColor.lightGray;
     if (charState == CharState.CORRECT) {
       backgroundColor = WMColor.primaryColor;
     } else if (charState == CharState.EXISTING) {
       backgroundColor = WMColor.secondaryColor;
     } else if (charState == CharState.NOTHING) {
-      backgroundColor = WMColor.lightGray;
+      backgroundColor = WMColor.gray;
     }
 
     return Padding(
