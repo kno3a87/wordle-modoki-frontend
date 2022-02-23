@@ -50,12 +50,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final int challengeTimes = 5;
-  final int charLength = 7;
+  final int charLength = 4;
   final String wordId = "hoge";
 
   Cursor cursor = Cursor(currentTimes: 0, currentPosition: 0);
   List<TileState> tiles = List.generate(
-    35,
+    20, // challengeTimesかcharLengthを変えたらここも変える（掛け算）
     (i) => TileState(
       times: 0,
       position: 0,
