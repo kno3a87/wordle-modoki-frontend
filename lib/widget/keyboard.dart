@@ -79,16 +79,16 @@ Widget _alphabet(
       width: MediaQuery.of(context).size.width / 12,
       child: TextButton(
         style: TextButton.styleFrom(
-          backgroundColor: WMColor.primaryLightColor,
+          backgroundColor: WMColor.primaryDarkColor,
         ),
         child: Text(
           char,
           style: const TextStyle(
-            color: WMColor.primaryColor,
+            color: WMColor.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        onPressed: () => onTapAlphabet!(char),
+        onPressed: (onTapAlphabet != null) ? () => onTapAlphabet(char) : null,
       ),
     ),
   );
@@ -102,12 +102,12 @@ Widget _button(String text, VoidCallback? onTap, BuildContext context) {
       width: MediaQuery.of(context).size.width / 7,
       child: TextButton(
         style: TextButton.styleFrom(
-          backgroundColor: WMColor.primaryLightColor,
+          backgroundColor: WMColor.primaryDarkColor,
         ),
         child: Text(
           text,
           style: const TextStyle(
-            color: WMColor.primaryColor,
+            color: WMColor.white,
             fontWeight: FontWeight.bold,
           ),
         ),
