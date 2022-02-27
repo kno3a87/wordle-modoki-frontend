@@ -174,20 +174,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   TextButton(
                     onPressed: () {
                       Navigator.pop(dialogContext);
-                      setState(() {
-                        correctCount = 0;
-                      });
                     },
                     child: const Text("done"),
                   )
                 ],
               );
             },
-          ).then((value) {
-            setState(() {
-              correctCount = 0;
-            });
-          });
+          );
         });
       }
 
@@ -231,6 +224,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTapEnter: (word.length == charLength)
                     ? () {
                         postAnswer();
+                        setState(() {
+                          correctCount = 0;
+                        });
                       }
                     : null,
                 onTapDelete: (word.isEmpty)
