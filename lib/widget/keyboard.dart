@@ -193,7 +193,7 @@ class _KeyBoardState extends State<KeyBoard> {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: SizedBox(
-        width: width / 12,
+        width: width / 13,
         child: TextButton(
           style: TextButton.styleFrom(
             backgroundColor: backgroundColor,
