@@ -96,6 +96,10 @@ class _KeyBoardState extends State<KeyBoard> {
           if (tileState.char == alphabet.char) {
             setState(() {
               debugPrint("おしい：${alphabet.char}");
+              // CORRECT が合ったら色上書きされないように
+              if (alphabet.state == CharState.CORRECT) {
+                return;
+              }
               alphabet.state = CharState.EXISTING;
             });
           }
