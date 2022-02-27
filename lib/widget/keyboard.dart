@@ -96,6 +96,10 @@ class _KeyBoardState extends State<KeyBoard> {
           if (tileState.char == alphabet.char) {
             setState(() {
               debugPrint("おしい：${alphabet.char}");
+              // CORRECT が合ったら色上書きされないように
+              if (alphabet.state == CharState.CORRECT) {
+                return;
+              }
               alphabet.state = CharState.EXISTING;
             });
           }
@@ -193,7 +197,7 @@ class _KeyBoardState extends State<KeyBoard> {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: SizedBox(
-        width: width / 12,
+        width: width / 13,
         child: TextButton(
           style: TextButton.styleFrom(
             backgroundColor: backgroundColor,
