@@ -68,68 +68,87 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Answer> answers = [];
 
   void postAnswer() async {
-    final result = await answerMutation(word);
-    debugPrint(result.data.toString());
-
-    if (result.hasException) {
-      debugPrint(result.exception.toString());
-      showDialog(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: const Text("Result"),
-            content: const Text("そんな英単語はありませ〜〜〜〜ん"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                },
-                child: const Text("done"),
-              )
-            ],
-          );
-        },
-      );
-      return;
-    }
-
-    final position = result.data!['answerWord']['chars'] as List<dynamic>;
-    for (var element in position) {
-      setState(() {
-        answers.add(
-          Answer(
-            position: element['position'],
-            judge: element['judge'],
-          ),
+    answerMutation(word).stream.listen((result) {
+      if (result.isLoading) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) {
+            return const AlertDialog(
+              elevation: 0.0,
+              backgroundColor: Colors.transparent,
+              title: Center(
+                child: SizedBox(width: 40, child: CircularProgressIndicator()),
+              ),
+            );
+          },
         );
-      });
-    }
-
-    for (var answer in answers) {
-      if (answer.judge == "CORRECT") {
-        tiles[answer.position + (cursor.currentTimes * charLength)].state =
-            CharState.CORRECT;
-      } else if (answer.judge == "EXISTING") {
-        tiles[answer.position + (cursor.currentTimes * charLength)].state =
-            CharState.EXISTING;
-      } else if (answer.judge == "NOTHING") {
-        tiles[answer.position + (cursor.currentTimes * charLength)].state =
-            CharState.NOTHING;
+        return;
       }
-    }
+      Navigator.pop(context); // loading dialog 消す用
 
-    // 初期化
-    setState(() {
-      cursor.currentPosition = 0;
-      (cursor.currentTimes < 4) ? cursor.currentTimes++ : null;
-      word = [];
-      answers = [];
+      if (result.hasException) {
+        debugPrint("エラーは" + result.exception.toString());
+        showDialog(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text("Result"),
+              content: const Text("そんな英単語はありませ〜〜〜〜ん"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text("done"),
+                )
+              ],
+            );
+          },
+        );
+        return;
+      }
+
+      debugPrint("結果は" + result.data.toString());
+
+      final position = result.data!['answerWord']['chars'] as List<dynamic>;
+      for (var element in position) {
+        setState(() {
+          answers.add(
+            Answer(
+              position: element['position'],
+              judge: element['judge'],
+            ),
+          );
+        });
+      }
+
+      for (var answer in answers) {
+        if (answer.judge == "CORRECT") {
+          tiles[answer.position + (cursor.currentTimes * charLength)].state =
+              CharState.CORRECT;
+        } else if (answer.judge == "EXISTING") {
+          tiles[answer.position + (cursor.currentTimes * charLength)].state =
+              CharState.EXISTING;
+        } else if (answer.judge == "NOTHING") {
+          tiles[answer.position + (cursor.currentTimes * charLength)].state =
+              CharState.NOTHING;
+        }
+      }
+
+      // 初期化
+      setState(() {
+        cursor.currentPosition = 0;
+        (cursor.currentTimes < 4) ? cursor.currentTimes++ : null;
+        word = [];
+        answers = [];
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(word.toString());
+    debugPrint("回答は" + word.toString());
 
     return Scaffold(
       appBar: AppBar(

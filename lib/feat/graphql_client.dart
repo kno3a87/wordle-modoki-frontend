@@ -17,7 +17,6 @@ GraphQLClient initGeraphql() {
   return client;
 }
 
-// まだ使ってない
 void correctWordQuery() async {
   const String correctWordQuery = r'''
       query CorrectWord($wordId: String!) {
@@ -28,23 +27,26 @@ void correctWordQuery() async {
       }
     ''';
 
-  final QueryOptions options = QueryOptions(
+  final WatchQueryOptions options = WatchQueryOptions(
+    fetchResults: true, // これないと listen 効かない
     document: gql(correctWordQuery),
     variables: <String, String>{
       'wordId': wordId,
     },
   );
 
-  final QueryResult result = await initGeraphql().query(options);
-  print(result);
+  final result = initGeraphql().watchQuery(options);
+
+  result.stream.listen((v) {
+    debugPrint("解答は" + v.data.toString());
+  });
 }
 
-Future<QueryResult> answerMutation(List<String> charList) async {
+ObservableQuery answerMutation(List<String> charList) {
   String word = "";
   for (var element in charList) {
     word += element;
   }
-  debugPrint(word);
 
   const String answerMutation = r'''
       mutation AnswerWord($wordId: String!, $word: String!) {
@@ -57,7 +59,8 @@ Future<QueryResult> answerMutation(List<String> charList) async {
       }
     ''';
 
-  final MutationOptions options = MutationOptions(
+  final WatchQueryOptions options = WatchQueryOptions(
+    fetchResults: true,
     document: gql(answerMutation),
     variables: <String, String>{
       'wordId': wordId,
@@ -65,9 +68,7 @@ Future<QueryResult> answerMutation(List<String> charList) async {
     },
   );
 
-  final QueryResult result = await initGeraphql().mutate(options);
-
-  debugPrint(result.data.toString());
+  final result = initGeraphql().watchMutation(options);
 
   return result;
 }
