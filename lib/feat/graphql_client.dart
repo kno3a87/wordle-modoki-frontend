@@ -17,7 +17,7 @@ GraphQLClient initGeraphql() {
   return client;
 }
 
-void correctWordQuery() async {
+ObservableQuery correctWordQuery() {
   const String correctWordQuery = r'''
       query CorrectWord($wordId: String!) {
         correctWord(wordId: $wordId) {
@@ -40,6 +40,8 @@ void correctWordQuery() async {
   result.stream.listen((v) {
     debugPrint("解答は" + v.data.toString());
   });
+
+  return result;
 }
 
 ObservableQuery answerMutation(List<String> charList) {

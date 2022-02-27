@@ -12,6 +12,15 @@ class Answer {
   final String judge;
 }
 
+class CorrectAnswer {
+  const CorrectAnswer({
+    required this.word,
+    required this.mean,
+  });
+  final String word;
+  final String mean;
+}
+
 class TileState {
   TileState({
     required this.times,
@@ -66,6 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> word = [];
   List<Answer> answers = [];
+  int correctCount = 0;
 
   void postAnswer() async {
     answerMutation(word).stream.listen((result) {
@@ -127,6 +137,9 @@ class _MyHomePageState extends State<MyHomePage> {
         if (answer.judge == "CORRECT") {
           tiles[answer.position + (cursor.currentTimes * charLength)].state =
               CharState.CORRECT;
+          setState(() {
+            correctCount++;
+          });
         } else if (answer.judge == "EXISTING") {
           tiles[answer.position + (cursor.currentTimes * charLength)].state =
               CharState.EXISTING;
@@ -134,6 +147,48 @@ class _MyHomePageState extends State<MyHomePage> {
           tiles[answer.position + (cursor.currentTimes * charLength)].state =
               CharState.NOTHING;
         }
+      }
+
+      if (cursor.currentTimes == challengeTimes || correctCount == charLength) {
+        correctWordQuery().stream.listen((result) {
+          final correctWord = result.data!['correctWord']['word'] as String;
+          final correctWordMean = result.data!['correctWord']['mean'] as String;
+
+          showDialog(
+            context: context,
+            builder: (dialogContext) {
+              return AlertDialog(
+                title: Text(
+                  (correctCount == charLength) ? "おめでちょい❣️" : "ざんねんちょい",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("答えは『 $correctWord 』"),
+                    Text("意味は$correctWordMean"),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      setState(() {
+                        correctCount = 0;
+                      });
+                    },
+                    child: const Text("done"),
+                  )
+                ],
+              );
+            },
+          ).then((value) {
+            setState(() {
+              correctCount = 0;
+            });
+          });
+        });
       }
 
       // 初期化
@@ -175,7 +230,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 count: cursor.currentTimes,
                 onTapEnter: (word.length == charLength)
                     ? () {
-                        correctWordQuery();
                         postAnswer();
                       }
                     : null,
