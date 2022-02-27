@@ -149,7 +149,8 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
 
-      if (cursor.currentTimes == challengeTimes || correctCount == charLength) {
+      if (cursor.currentTimes == challengeTimes - 1 ||
+          correctCount == charLength) {
         correctWordQuery().stream.listen((result) {
           final correctWord = result.data!['correctWord']['word'] as String;
           final correctWordMean = result.data!['correctWord']['mean'] as String;
